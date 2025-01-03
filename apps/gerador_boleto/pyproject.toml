@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "gerador-boleto"
+version = "0.1.0"
+description = ""
+authors = ["Bruno R. Pianca <brunorpdev@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pyboleto = "^0.3.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
