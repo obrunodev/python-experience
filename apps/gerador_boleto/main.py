@@ -38,8 +38,7 @@ def gerar_boleto_reag():
 
     boleto = ReagBoletoPDF('boleto-reag.pdf')
     for i in range(len(lista_dados)):
-        boleto.drawBoleto(lista_dados[i])
-        boleto.nextPage()
+        boleto.draw_boleto(lista_dados[i])
         boleto.save()
 
 
