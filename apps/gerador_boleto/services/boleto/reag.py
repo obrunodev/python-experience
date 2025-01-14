@@ -9,14 +9,6 @@ class BoletoReag(BoletoData):
     conta_cedente = CustomProperty('conta_cedente', 8)
 
     def __init__(self, format_convenio, format_nnumero):
-        '''
-            Construtor para boleto do Banco deo Brasil
-
-            Args:
-                format_convenio Formato do convenio 4, 6, 7 ou 8
-                format_nnumero Formato nosso numero 1 ou 2
-                    (apenas para convenio 6)
-        '''
         super(BoletoReag, self).__init__()
 
         self.codigo_banco = "246"

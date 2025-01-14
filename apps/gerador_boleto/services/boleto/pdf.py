@@ -352,6 +352,11 @@ class ABCBoletoPDF(BoletoPDF):
         self.draw_bank_name("Banco ABC Brasil", 50, 735)
 
 
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.lib import colors
+
 class ReagBoletoPDF(object):
 
     def __init__(self, file_descr, landscape=False):
@@ -362,86 +367,175 @@ class ReagBoletoPDF(object):
 
         self.c = canvas.Canvas(file_descr, pagesize=pagesize)
         self.c.setStrokeColor(colors.black)
-    
-    def marcacao_dimensao_reag(self):
-        # Configuração do tamanho da página A4
-        page_width, page_height = A4
-        c = self.c
-        
-        # Dimensões da Ficha de Compensação em mm
-        ficha_width = 170 * mm  # Largura mínima de 170 mm
-        ficha_height = 95 * mm  # Altura mínima de 95 mm
-        
-        # Dimensões do Recibo do Pagador (a critério do banco, vamos definir como 100 x 170 mm)
-        recibo_width = 170 * mm
-        recibo_height = 100 * mm
-        
-        # Posição inicial (margem superior para o recibo)
-        x_start = 20 * mm
-        y_start = page_height - (recibo_height + ficha_height + 20 * mm)  # Margem de 20 mm
 
-        # Desenhar o Recibo do Pagador
-        c.setStrokeColor("black")
-        c.setLineWidth(1)
-        c.rect(x_start, y_start + ficha_height, recibo_width, recibo_height)  # Retângulo do Recibo
-        c.setFont("Helvetica", 8)
-        c.drawString(x_start + 10 * mm, y_start + ficha_height + recibo_height - 10 * mm, "Recibo do Pagador")
-        c.drawString(x_start + 10 * mm, y_start + ficha_height + recibo_height - 20 * mm, "Valor do Documento: R$ 0,00")
-        c.drawString(x_start + 10 * mm, y_start + ficha_height + recibo_height - 30 * mm, "Nosso Número: 000000000")
-        c.drawString(x_start + 10 * mm, y_start + ficha_height + recibo_height - 40 * mm, "Carteira: 00")
-        c.drawString(x_start + 10 * mm, y_start + ficha_height + recibo_height - 50 * mm, "Agência/Código do Beneficiário: 0000/000000")
-        c.drawString(x_start + 10 * mm, y_start + ficha_height + recibo_height - 60 * mm, "Data do Vencimento: 00/00/0000")
-
-        # Desenhar a Ficha de Compensação
-        c.setStrokeColor("black")
-        c.setLineWidth(1)
-        c.rect(x_start, y_start, ficha_width, ficha_height)  # Retângulo da Ficha de Compensação
-
-        # Cabeçalho da Ficha de Compensação (Nome do Banco e Linha Digitável)
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(x_start + 10 * mm, y_start + ficha_height - 10 * mm, "Banco Exemplo S.A. 001-9")  # Nome e número do banco
-        c.setFont("Helvetica", 8)
-        c.drawString(x_start + ficha_width - 90 * mm, y_start + ficha_height - 10 * mm, "12345.67890 12345.678901 12345.678901 1 12340000012345")  # Linha digitável
-
-        # Linha de corte
-        c.setDash(3, 3)  # Linha tracejada
-        c.line(x_start, y_start + ficha_height, x_start + ficha_width, y_start + ficha_height)
-
-        # Dados genéricos na Ficha de Compensação
-        c.setDash()  # Retira a linha tracejada
-        c.setFont("Helvetica", 8)
-        c.drawString(x_start + 10 * mm, y_start + ficha_height - 30 * mm, "Pagador: Nome do Pagador")
-        c.drawString(x_start + 10 * mm, y_start + ficha_height - 40 * mm, "CPF/CNPJ: 000.000.000-00")
-        c.drawString(x_start + 10 * mm, y_start + ficha_height - 50 * mm, "Endereço: Endereço do Pagador")
-        c.drawString(x_start + 10 * mm, y_start + ficha_height - 60 * mm, "Cidade/UF: Cidade - UF")
-        c.drawString(x_start + ficha_width - 90 * mm, y_start + ficha_height - 70 * mm, "Valor do Documento: R$ 0,00")
-        c.drawString(x_start + ficha_width - 90 * mm, y_start + ficha_height - 80 * mm, "Data do Vencimento: 00/00/0000")
 
     def draw_line(self, x1, y1, x2, y2):
         self.c.line(x1, y1, x2, y2)
 
-    def draw_recibo(self):
-        self.draw_lines(self.c, 26, 150)
+
+    def draw_linha_a(self, x_start, y_start):
+        """Desenha a primeira linha do boleto"""
+        c = self.c
+        c.line(x_start, y_start, x_start, y_start + 50)  # Linha vertical esquerda
+        c.line(x_start + 114, y_start, x_start + 114, y_start + 50)  # Linha vertical direita
+        c.line(x_start, y_start + 50, x_start + 114, y_start + 50)  # Linha horizontal superior
+        c.line(x_start, y_start, x_start + 170 * mm, y_start)  # Linha horizontal inferior
+
+        text_x = x_start + 7  # Ajuste da posição horizontal
+        text_y = y_start + 20  # Ajuste da posição vertical
+        c.setFont("Helvetica", 12)  # Fonte e tamanho do texto
+        c.drawString(text_x, text_y, "LOGOTIPO REAG")
+
+        # Adicionar o nome do banco, código do banco e linha digitável ao lado direito do retângulo
+        banco_x = x_start + 120  # Posiciona ao lado direito do retângulo
+        banco_y = y_start + 5  # Posição vertical
+        nome_banco = "Banco REAG"
+        codigo_banco = "528-2"
+        c.setFont("Helvetica-Bold", 8)  # Fonte para o nome do banco
+        c.drawString(banco_x, banco_y, f"{nome_banco} | {codigo_banco}")  # Nome do banco
+
+        # Linha digitável
+        linha_digitavel_x = banco_x + 80
+        linha_digitavel = "99999.99999 99999.99999 99999.99999D 99999999999999"
+        c.setFont("Helvetica", 8)  # Fonte tipo monoespaçada para simular a linha digitável
+        c.drawString(linha_digitavel_x, banco_y, f"| {linha_digitavel}")
     
-    def draw_lines(c, x_start, y_start):
-        """Desenha as 3 linhas no canto superior esquerdo."""
-        # Linha vertical esquerda
-        c.line(x_start, y_start, x_start, y_start + 50)
-        # Linha vertical direita
-        c.line(x_start + 114, y_start, x_start + 114, y_start + 50)
-        # Linha horizontal superior
-        c.line(x_start, y_start + 50, x_start + 114, y_start + 50)
-    
-    def draw_ficha_compensação(self):
-        self.draw_recibo()
-        ...
+
+    def draw_linha_b(self, x_start, y_start, width):
+        """Desenha a linha B com as informações de local de pagamento, incluindo bordas."""
+        c = self.c
+        # Borda
+        height = 25
+        c.rect(x_start, y_start - height, width, height)
+
+        # Linha de pagamento
+        c.setFont("Helvetica", 8)
+        c.drawString(x_start + 5, y_start - 10, "Local de Pagamento:")
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(x_start + 5, y_start - 22, "Pagável Preferencialmente na Rede Banco REAG ou no Banco REAG Expresso")
+
+
+    def draw_linha_c(self, x_start, y_start, width):
+        """Desenha a linha C com as informações do beneficiário, incluindo bordas."""
+        c = self.c
+        # Borda
+        height = 25
+        c.rect(x_start, y_start - height, width, height)
+
+        # Nome do beneficiário
+        c.setFont("Helvetica", 8)
+        c.drawString(x_start + 5, y_start - 10, "Nome do beneficiário/CPF/CNPJ/Endereço:")
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(x_start + 5, y_start - 22, "QFLASH TECNOLOGIA LTDA – CNPJ: 31.504.994/0001-07")
+
+
+    def draw_linha_d(self, x_start, y_start, width):
+        """Desenha a linha D com os detalhes do documento."""
+        c = self.c
+        # Borda
+        height = 35
+        c.rect(x_start, y_start - height, width, height)
+
+        # Colunas
+        col_widths = [width * 0.2, width * 0.2, width * 0.2, width * 0.2, width * 0.2]
+        col_titles = [
+            "Data do Documento",
+            "Número do Documento",
+            "Espécie Documento",
+            "Aceite",
+            "Data Processamento",
+        ]
+        col_values = ["18/11/2024", "QF2024/007", "DM", "N", "18/11/2024"]
+
+        # Títulos
+        for i, title in enumerate(col_titles):
+            c.setFont("Helvetica", 8)
+            c.drawString(x_start + sum(col_widths[:i]) + 5, y_start - 7, title)
+
+        # Valores
+        for i, value in enumerate(col_values):
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(x_start + sum(col_widths[:i]) + 5, y_start - 30, value)
+
+
+    def draw_linha_e(self, x_start, y_start, width):
+        """Desenha a linha E com os valores do documento."""
+        c = self.c
+        # Borda
+        height = 25
+        c.rect(x_start, y_start - height, width, height)
+
+        # Colunas
+        col_widths = [width * 0.15, width * 0.1, width * 0.15, width * 0.1, width * 0.25, width * 0.25]
+        col_titles = ["Uso do Banco", "CIP", "Carteira", "Moeda", "Quantidade", "Valor"]
+        col_values = ["", "", "112", "R$", "", "1.500,00"]
+
+        # Títulos
+        for i, title in enumerate(col_titles):
+            c.setFont("Helvetica", 8)
+            c.drawString(x_start + sum(col_widths[:i]) + 5, y_start - 10, title)
+
+        # Valores
+        for i, value in enumerate(col_values):
+            c.setFont("Helvetica-Bold", 8)
+            c.drawString(x_start + sum(col_widths[:i]) + 5, y_start - 20, value)
+
+
+    def draw_recibo(self, x_start, y_start, width, height):
+        """Desenha recibo do pagador."""
+        c = self.c
+
+        # Borda principal
+        c.setStrokeColor("black")
+        c.setLineWidth(1)
+        c.rect(x_start, y_start, width, height)
+
+        # Linhas internas
+        self.draw_linha_a(x_start, y_start + height - 50)
+        self.draw_linha_b(x_start, y_start + height - 50, width)
+        self.draw_linha_c(x_start, y_start + height - 75, width)
+        self.draw_linha_d(x_start, y_start + height - 100, width)
+        self.draw_linha_e(x_start, y_start + height - 135, width)
+
+    def draw_ficha_compensacao(self, x_start, y_start, width, height):
+        """Desenha a Ficha de Compensação."""
+        c = self.c
+
+        # Desenhar retângulo da ficha
+        c.setStrokeColor("black")
+        c.setLineWidth(1)
+        c.rect(x_start, y_start, width, height)
+
+        # Desenhar as 3 linhas no canto superior esquerdo
+        self.draw_linha_a(x_start, y_start + height - 50)
 
     def draw_boleto(self, boleto_dados):
-        self.marcacao_dimensao_reag()
-        self.draw_ficha_compensação()
-        self.draw_recibo()
-    
+        # Configuração do tamanho da página A4
+        page_width, page_height = A4
+        c = self.c
+
+        # Dimensões em mm
+        ficha_width = 170 * mm
+        ficha_height = 95 * mm
+        recibo_width = 170 * mm
+        recibo_height = 100 * mm
+        spacing_between_sections = 50 * mm  # Espaço entre os retângulos
+
+        # Margem e posição inicial
+        x_start = 20 * mm
+        y_start = page_height - (recibo_height + ficha_height + spacing_between_sections + 20 * mm)  # Margem de 20 mm
+
+        self.draw_recibo(x_start, y_start + ficha_height + spacing_between_sections, recibo_width, recibo_height)
+        self.draw_ficha_compensacao(x_start, y_start, ficha_width, ficha_height)
+
+        # Linha de corte entre o recibo e a ficha
+        c.setDash(3, 3)  # Linha tracejada
+        c.line(x_start, y_start + ficha_height + (spacing_between_sections / 2),
+               x_start + ficha_width, y_start + ficha_height + (spacing_between_sections / 2))
+        c.setDash()  # Retira a linha tracejada
+
     def save(self):
         self.c.save()
+
 
 
